@@ -1,0 +1,10 @@
+{
+  "name": "npm-release",
+  "version": "0.1.0",
+  "description": "Audit a package against the mistakes that cost a permanent version number, then fix them and walk the release",
+  "author": {
+    "name": "Aleksandr Linde"
+  },
+  "repository": "https://github.com/alekslinde/skills",
+  "keywords": ["npm", "publish", "release", "provenance", "trusted-publishing", "oidc", "pnpm", "changesets", "monorepo", "library"]
+}

@@ -13,10 +13,12 @@ claude plugin marketplace add alekslinde/skills
 claude plugin install licensing@alekslinde
 claude plugin install versioning@alekslinde
 claude plugin install agent-team@alekslinde
+claude plugin install npm-release@alekslinde
 ```
 
 Or inside a session: `/plugin marketplace add alekslinde/skills`, then
-`/plugin install licensing@alekslinde` (or `versioning@alekslinde`, `agent-team@alekslinde`).
+`/plugin install licensing@alekslinde` (or `versioning@alekslinde`,
+`agent-team@alekslinde`, `npm-release@alekslinde`).
 
 **Any agent**, with [`npx skills`](https://github.com/vercel-labs/skills)
 (Claude Code, Codex, Cursor, OpenCode and others). It copies the skill folders
@@ -38,6 +40,7 @@ get the skill's questions as plain text.
 | [`licensing`](plugins/licensing) | `/licensing:choose-license` | Audits a repository (what ships where, bundled third-party material, dependencies, contributors, earlier releases), asks only what the code can't answer, recommends a licence per part, and applies it with REUSE and SPDX once approved |
 | [`versioning`](plugins/versioning) | `/versioning:choose-versioning` | Audits what ships where, current versions, tags, releases and how things deploy today, asks only what the code can't answer, and recommends a scheme, tag format, release flow and tool per part, with the path to 1.0 left to you. Sets it up once approved |
 | [`agent-team`](plugins/agent-team) | `/agent-team:plan-agent-team` | Audits the kinds of work a project has, then designs an agent team across engineering, design, security, quality, product, docs and operations: roles with evidence, ownership by path, handoffs, orchestration and review gates. Writes the team once as neutral role files and translates them for the agents you use |
+| [`npm-release`](plugins/npm-release) | `/npm-release:prepare-npm-release` | Audits a package against the mistakes that cost a permanent version number — a workspace specifier in a tarball, an untested `engines` claim, a release job that can publish alone, a green build that shipped a broken package — runs the mechanical checks as a script, asks only what the code can't answer, then fixes what it found and walks the release. npm and pnpm, with every rule tagged by the toolchain it applies to |
 
 Claude also loads a skill on its own when a request matches it, for example
 "which licence should this project use?".
