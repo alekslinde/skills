@@ -14,6 +14,11 @@
       "name": "versioning",
       "source": "./plugins/versioning",
       "description": "Work out how to version, tag and release each part of a project, then set it up"
+    },
+    {
+      "name": "agent-team",
+      "source": "./plugins/agent-team",
+      "description": "Assess which agent roles a project needs, design the team and set it up for the agents you use"
     }
   ]
 }

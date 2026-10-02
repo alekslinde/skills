@@ -1,0 +1,10 @@
+{
+  "name": "agent-team",
+  "version": "0.1.0",
+  "description": "Assess which agent roles a project needs, design the team and how it works together, and set it up for the agents you use",
+  "author": {
+    "name": "Aleksandr Linde"
+  },
+  "repository": "https://github.com/alekslinde/skills",
+  "keywords": ["agents", "multi-agent", "subagents", "team", "roles", "orchestration"]
+}
