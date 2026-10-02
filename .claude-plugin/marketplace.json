@@ -29,6 +29,11 @@
       "name": "project-memory",
       "source": "./plugins/project-memory",
       "description": "Audit what a repository already proves about itself, then write the project memory file an agent reads on every task"
+    },
+    {
+      "name": "disk-usage",
+      "source": "./plugins/disk-usage",
+      "description": "Explain what an agent's own directory holds and what it costs on disk, then reclaim only what is dead"
     }
   ]
 }
