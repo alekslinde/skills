@@ -1,8 +1,12 @@
 # skills
 
-Claude Code plugins by Aleksandr Linde, published as a plugin marketplace.
+Agent skills by Aleksandr Linde. Each skill is a standard `SKILL.md` folder, so
+it works in Claude Code and in other agents that read the format.
 
 ## Install
+
+**Claude Code**, as a plugin marketplace. Installed plugins are pinned to their
+version, and their skills are namespaced (`/licensing:choose-license`):
 
 ```bash
 claude plugin marketplace add alekslinde/skills
@@ -11,6 +15,19 @@ claude plugin install licensing@alekslinde
 
 Or inside a session: `/plugin marketplace add alekslinde/skills`, then
 `/plugin install licensing@alekslinde`.
+
+**Any agent**, with [`npx skills`](https://github.com/vercel-labs/skills)
+(Claude Code, Codex, Cursor, OpenCode and others). It copies the skill folders
+into each agent's skills directory, in the project by default or globally with
+`-g`:
+
+```bash
+npx skills add alekslinde/skills
+npx skills add alekslinde/skills --skill choose-license -a codex
+```
+
+`npx skills update` fetches newer versions. Agents without an ask-the-user tool
+get the skill's questions as plain text.
 
 ## Plugins
 
