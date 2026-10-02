@@ -11,10 +11,11 @@ version, and their skills are namespaced (`/licensing:choose-license`):
 ```bash
 claude plugin marketplace add alekslinde/skills
 claude plugin install licensing@alekslinde
+claude plugin install versioning@alekslinde
 ```
 
 Or inside a session: `/plugin marketplace add alekslinde/skills`, then
-`/plugin install licensing@alekslinde`.
+`/plugin install licensing@alekslinde` (or `versioning@alekslinde`).
 
 **Any agent**, with [`npx skills`](https://github.com/vercel-labs/skills)
 (Claude Code, Codex, Cursor, OpenCode and others). It copies the skill folders
@@ -34,6 +35,7 @@ get the skill's questions as plain text.
 | Plugin | Skill | What it does |
 | --- | --- | --- |
 | [`licensing`](plugins/licensing) | `/licensing:choose-license` | Audits a repository (what ships where, bundled third-party material, dependencies, contributors, earlier releases), asks only what the code can't answer, recommends a licence per part, and applies it with REUSE and SPDX once approved |
+| [`versioning`](plugins/versioning) | `/versioning:choose-versioning` | Audits what ships where, current versions, tags, releases and how things deploy today, asks only what the code can't answer, and recommends a scheme, tag format, release flow and tool per part, with the path to 1.0 left to you. Sets it up once approved |
 
 Claude also loads a skill on its own when a request matches it, for example
 "which licence should this project use?".

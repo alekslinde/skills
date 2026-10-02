@@ -9,6 +9,11 @@
       "name": "licensing",
       "source": "./plugins/licensing",
       "description": "Audit a project and choose the right licence for each part of it"
+    },
+    {
+      "name": "versioning",
+      "source": "./plugins/versioning",
+      "description": "Work out how to version, tag and release each part of a project, then set it up"
     }
   ]
 }
