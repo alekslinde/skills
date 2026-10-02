@@ -19,6 +19,11 @@
       "name": "agent-team",
       "source": "./plugins/agent-team",
       "description": "Assess which agent roles a project needs, design the team and set it up for the agents you use"
+    },
+    {
+      "name": "npm-release",
+      "source": "./plugins/npm-release",
+      "description": "Audit a package against the mistakes that cost a permanent version number, then fix them and walk the release"
     }
   ]
 }
