@@ -24,6 +24,11 @@
       "name": "npm-release",
       "source": "./plugins/npm-release",
       "description": "Audit a package against the mistakes that cost a permanent version number, then fix them and walk the release"
+    },
+    {
+      "name": "project-memory",
+      "source": "./plugins/project-memory",
+      "description": "Audit what a repository already proves about itself, then write the project memory file an agent reads on every task"
     }
   ]
 }

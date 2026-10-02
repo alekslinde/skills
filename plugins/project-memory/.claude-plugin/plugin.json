@@ -1,0 +1,10 @@
+{
+  "name": "project-memory",
+  "version": "0.1.0",
+  "description": "Audit what a repository already proves about itself, then write the project memory file an agent reads on every task",
+  "author": {
+    "name": "Aleksandr Linde"
+  },
+  "repository": "https://github.com/alekslinde/skills",
+  "keywords": ["claude-md", "agents-md", "project-memory", "context", "conventions", "onboarding", "instructions", "monorepo"]
+}
