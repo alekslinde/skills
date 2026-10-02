@@ -1,0 +1,10 @@
+{
+  "name": "licensing",
+  "version": "0.1.0",
+  "description": "Audit a project and choose the right licence for each part of it, then apply it with REUSE and SPDX",
+  "author": {
+    "name": "Aleksandr Linde"
+  },
+  "repository": "https://github.com/alekslinde/skills",
+  "keywords": ["license", "licence", "spdx", "reuse", "open-source"]
+}

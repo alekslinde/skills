@@ -1,0 +1,14 @@
+{
+  "name": "alekslinde",
+  "description": "Aleksandr Linde's Claude Code plugins",
+  "owner": {
+    "name": "Aleksandr Linde"
+  },
+  "plugins": [
+    {
+      "name": "licensing",
+      "source": "./plugins/licensing",
+      "description": "Audit a project and choose the right licence for each part of it"
+    }
+  ]
+}
