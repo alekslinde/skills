@@ -1,0 +1,10 @@
+{
+  "name": "versioning",
+  "version": "0.1.0",
+  "description": "Work out how a project should version, tag and release each of its parts, then set it up",
+  "author": {
+    "name": "Aleksandr Linde"
+  },
+  "repository": "https://github.com/alekslinde/skills",
+  "keywords": ["versioning", "semver", "calver", "release", "changelog", "tags", "release-please", "changesets"]
+}
