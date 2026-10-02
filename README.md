@@ -45,14 +45,22 @@ get the skill's questions as plain text.
 Claude also loads a skill on its own when a request matches it, for example
 "which licence should this project use?".
 
-## Adding a plugin
+## Contributing
 
-1. Create `plugins/<name>/.claude-plugin/plugin.json` and
-   `plugins/<name>/skills/<skill>/SKILL.md`.
-2. Add an entry to `.claude-plugin/marketplace.json` whose `name` matches the
-   plugin's `name`.
-3. Run `claude plugin validate .` and `claude plugin validate plugins/<name>`.
-4. Bump the plugin's `version` in `plugin.json` when you change it; installed
-   copies stay on the old version until you do.
+Pull requests are welcome. [CONTRIBUTING.md](CONTRIBUTING.md) covers the shape
+these skills share, how to add a plugin, when to bump a version, and the checks
+to run before opening one.
+
+## Licence
+
+[Apache-2.0](LICENSE) — copyright 2026 Aleksandr Linde. Use these skills
+anywhere, including in commercial work: keep the licence and copyright notice,
+and state significant changes you make. The licence also grants patent rights
+and, under section 6, no trademark rights, so the project and marketplace names
+stay reserved.
+
+Everything in the repository is Apache-2.0 — plugin manifests, the skill
+instructions in Markdown and the scripts. [REUSE.toml](REUSE.toml) records the
+same per-file, verifiable with `pipx run reuse lint`.
 
 The skills give general information, not legal or professional advice.

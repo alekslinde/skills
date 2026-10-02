@@ -16,6 +16,8 @@ project's own checks before committing.
 3. **`REUSE.toml`**: one annotation per area, broadest first, plus `precedence
    = "override"` entries for third-party files inside an area:
 
+   <!-- REUSE-IgnoreStart -->
+
    ```toml
    version = 1
 
@@ -36,15 +38,21 @@ project's own checks before committing.
    SPDX-License-Identifier = "MPL-2.0"
    ```
 
+   <!-- REUSE-IgnoreEnd -->
+
    Brand assets get a `LicenseRef-<Name>` id with a short text in
    `LICENSES/LicenseRef-<Name>.txt` saying all rights are reserved.
 4. **SPDX headers** on every source file, using the comment style of the file
    type, after any shebang or doctype:
 
+   <!-- REUSE-IgnoreStart -->
+
    ```
    // SPDX-FileCopyrightText: 2026 Owner Name
    // SPDX-License-Identifier: Apache-2.0
    ```
+
+   <!-- REUSE-IgnoreEnd -->
 
    Generated files: change the generator so it writes the header, or the next
    regeneration drops it. For a generated file built from third-party data,
