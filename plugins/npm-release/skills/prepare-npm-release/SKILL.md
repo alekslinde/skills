@@ -96,12 +96,14 @@ checks by rule.
 
 ## Phase 2: Ask
 
-Ask only what the audit left open. Use the AskUserQuestion tool when available:
-at most four questions per call, two to four options each, the recommended
-option first and labelled "(Recommended)", and a description on every option
-saying what choosing it means in practice. Without it, ask in plain text,
-numbered. Explain any term the owner may not know (provenance, trusted
-publishing, staging, the workspace protocol) in a sentence before asking.
+Ask only what the audit left open. Use the AskUserQuestion tool when it is
+available: at most four questions per call, two to four options each, the
+recommended option first and labelled "(Recommended)", and a description on
+every option saying what choosing it means in practice. Without it, ask in
+plain text, numbered.
+
+Explain any term the owner may not know (provenance, trusted publishing,
+staging, the workspace protocol) in a sentence before asking.
 
 Skip anything the audit answered, and word the rest around what you found.
 

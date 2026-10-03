@@ -73,10 +73,11 @@ Find:
 
 ## Phase 2: Ask
 
-Ask only what the audit left open. Use the agent's ask-the-user tool when it
-has one: at most four questions per call, two to four options each, the
+Ask only what the audit left open. Use the AskUserQuestion tool when it is
+available: at most four questions per call, two to four options each, the
 recommended option first and labelled "(Recommended)", and a description on
-every option. Without one, ask in plain text, numbered.
+every option saying what choosing it means in practice. Without it, ask in
+plain text, numbered.
 
 ### Goals
 

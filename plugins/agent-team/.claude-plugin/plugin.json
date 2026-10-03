@@ -1,6 +1,6 @@
 {
   "name": "agent-team",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Assess which agent roles a project needs, design the team and how it works together, and set it up for the agents you use",
   "author": {
     "name": "Aleksandr Linde"

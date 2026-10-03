@@ -57,8 +57,11 @@ Find:
 Ask only what the audit left open. Use the AskUserQuestion tool when it is
 available: at most four questions per call, two to four options each, the
 recommended option first and labelled "(Recommended)", and a description on
-every option saying what choosing it means in practice. Ask the most
-consequential questions first; later answers often make other questions moot.
+every option saying what choosing it means in practice. Without it, ask in
+plain text, numbered.
+
+Ask the most consequential questions first; later answers often make other
+questions moot.
 
 Before asking, explain any term the owner may not know (copyleft, SPDX, DCO,
 CLA, REUSE) in a sentence. If they ask what something means, answer plainly
