@@ -432,6 +432,12 @@ if (projectArg) {
     }
   }
 
+  o.push(`\n## Not counted here`);
+  o.push(`file-history/ is keyed by session, not by project, so this project's`);
+  o.push(`edit snapshots sit outside the directory measured above and are not in`);
+  o.push(`the total. The agent's own purge command resolves which belong to this`);
+  o.push(`project; its dry run is the way to see the real footprint.`);
+
   o.push(`\n## Still yours to judge`);
   if (!pReport.repoExists) {
     o.push(`- The repository is not at this path. Deleted, or moved, renamed, on an`);

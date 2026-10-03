@@ -167,7 +167,9 @@ The order that matters:
 1. **Prefer the agent's own tooling** over hand-written deletes. It knows which
    files belong together; a shell glob does not.
 2. **Dry run first**, always, and show the owner the real output before
-   anything is removed.
+   anything is removed. Pass the project path explicitly — without one the
+   command waits on an interactive prompt that an agent cannot answer, and
+   appears to hang rather than failing.
 3. **Delete only what was named in the approved list.** If the dry run reveals
    something unexpected, stop and go back to the owner rather than widening the
    scope on their behalf.

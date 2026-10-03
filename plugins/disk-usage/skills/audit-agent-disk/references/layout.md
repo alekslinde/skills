@@ -43,10 +43,22 @@ swept up by anything matching on the parent directory. Never delete it as part
 of a cleanup. Where a project is genuinely gone, offer to read its memory out
 first.
 
+This includes the agent's own purge command, which removes a project's
+transcripts and its `memory/` as one unit and offers no way to keep the
+notes. Purging is therefore the one operation that destroys essential state by
+design — read the notes out before running it, not after.
+
 ## file-history/ — cleared
 
 Snapshots of files before the agent edited them, behind rewind and checkpoint
 restore. Bounded by the same retention window.
+
+Organised by **session id, not by project**: one directory per session, all of
+them siblings at the top level, with nothing in the name saying which project
+a session belonged to. So a project's true footprint is its own directory plus
+a scattering of directories here, and measuring the project directory alone
+understates it. The agent's own purge command resolves the mapping; a size
+estimate made by hand will not.
 
 Pruning it costs the ability to rewind edits in sessions still inside the
 window. Rarely worth it: it is typically a small fraction of the total.

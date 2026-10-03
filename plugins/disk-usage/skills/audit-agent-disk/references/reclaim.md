@@ -47,24 +47,53 @@ claude project purge --dry-run <path>   # always first
 claude project purge <path>             # after the owner sees the dry run
 ```
 
-The path it takes is the repository path, the same one `inspect.mjs
---project` takes — so a project audited by that command is purged with the
-same argument, and there is no encoded directory name to transcribe wrongly
-in between.
+**Always pass the path.** Without one the command opens an interactive picker,
+and an agent's shell has no terminal to answer it with: the process sits at
+idle forever rather than failing, which reads like a slow scan of a large
+directory and is not one. With a path it completes in well under a second
+whatever the directory holds. If it produces nothing in a few seconds, it is
+blocked, not working — stop it and supply the path.
+
+The path is the repository path, the same one `inspect.mjs --project` takes —
+so a project audited by that command is purged with the same argument, and
+there is no encoded directory name to transcribe wrongly in between.
 
 `--all` covers every project, `-i` prompts per item, `-y` skips confirmation.
-Use `-y` only when the owner has approved that exact list; it removes the last
-checkpoint between a misidentification and permanent loss.
+`--all` and `-y` have the same interactive problem in reverse: they are how a
+purge proceeds with no prompt at all. Use `-y` only when the owner has
+approved that exact list; it removes the last checkpoint between a
+misidentification and permanent loss.
 
 **Always dry run, and show the real output.** Not a summary of it. The dry run
 is where a wrongly identified project gets caught, and that is the failure this
 whole phase is built to prevent.
 
-On a large directory the dry run can take a while. Let it finish rather than
-interrupting and assuming.
-
 If the dry run lists anything the owner did not approve, stop and go back to
 them. Do not widen the scope on their behalf.
+
+### What the plan covers beyond the project directory
+
+The dry run prints the full list, and it reaches further than the project's
+own directory. Expect to see:
+
+- **One `file-history/` directory per session**, keyed by session id rather
+  than by project. These are not inside the project directory and are easy to
+  miss when estimating what a purge frees.
+- **The project directory itself**, transcripts *and* `memory/` together. The
+  command does not separate them, so read the memory notes out first if they
+  are wanted — purge is the one path where essential state goes with the rest.
+- **The project's entry in the agent's config**, carrying trust, history and
+  MCP server settings for that project. Re-running an agent there starts from
+  an untrusted state.
+- **Prompt history entries** typed in that project.
+
+It also says what it does *not* touch — shell snapshots are not project-scoped,
+and rotating config backups may still hold the project entry for a while.
+Quote those caveats rather than promising a clean sweep.
+
+Count the items against what the audit measured. The plan's item count is
+files and directories, not bytes, so it will not match a size estimate and is
+not meant to.
 
 ### Before purging a project that holds memory
 
