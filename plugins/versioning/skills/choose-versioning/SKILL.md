@@ -67,8 +67,10 @@ Ask only what the audit left open. Use the AskUserQuestion tool when it is
 available: at most four questions per call, two to four options each, the
 recommended option first and labelled "(Recommended)", and a description on
 every option saying what choosing it means in practice. Without it, ask in
-plain text, numbered. Explain any term the owner may not know (SemVer,
-CalVer, Conventional Commits, release PR) in a sentence before asking.
+plain text, numbered.
+
+Explain any term the owner may not know (SemVer, CalVer, Conventional
+Commits, release PR) in a sentence before asking.
 
 Skip any question the audit answered, and word the rest around what you found
 ("Your npm package..." rather than "Any packages...").

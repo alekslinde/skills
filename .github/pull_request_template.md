@@ -22,6 +22,7 @@ Contributions are accepted under Apache-2.0; see CONTRIBUTING.md.
 
 - [ ] `claude plugin validate .` passes
 - [ ] `claude plugin validate plugins/<name>` passes for each plugin touched
+- [ ] `node scripts/check-shared-blocks.mjs` passes
 - [ ] `pipx run reuse lint` passes
 - [ ] Ran the skill end to end against a real project
 

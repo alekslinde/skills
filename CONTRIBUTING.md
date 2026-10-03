@@ -42,6 +42,32 @@ stays short. Scripts belong in `scripts/`, and the one in this repository is
 dependency-free and read-only on purpose — a tool that mutates what it inspects
 is not one you would run twice.
 
+## Guidance that every skill repeats
+
+Some wording is the same in every skill — how to use the ask-the-user tool,
+for one. It is copied into each `SKILL.md` rather than shared, because skills
+cannot import each other: every plugin installs on its own, and a pointer to
+another file costs a tool call mid-task that an agent may skip, while inline
+prose cannot be skipped.
+
+The cost of that choice is drift, and drift here is silent: one skill had
+already lost the sentence saying what to do when the tool is unavailable,
+which changes behaviour and reads as normal prose. So the copies are checked
+instead of trusted:
+
+```bash
+node scripts/check-shared-blocks.mjs
+```
+
+It compares each copy against the canonical wording held at the top of that
+script, ignoring line wrapping. If you change one of these paragraphs, change
+it in the script and in every skill; if you add a paragraph that all skills
+must word identically, add it to `BLOCKS` there.
+
+Specialisation around a shared block is fine and expected — a skill may follow
+it with its own jargon list or ordering advice. Only the shared sentences have
+to match.
+
 ## Adding a plugin
 
 1. Create the manifest and the skill:
