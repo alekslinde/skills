@@ -1,6 +1,6 @@
 ---
 name: audit-agent-disk
-description: Explain what an agent's own directory holds and what it costs on disk, separating the rolling working set the agent already clears from the state nothing ever removes, then reclaim only what the owner agrees is dead. Use when someone asks why ~/.claude or an agent directory is so large, wants a breakdown of agent disk usage, suspects transcripts or plugins are filling the disk, asks what is safe to delete from an agent directory, or wants old project state and sessions cleaned up.
+description: Explain what an agent's own directory holds and what it costs on disk, across every project or for one, separating the rolling working set the agent already clears from the state nothing ever removes, then reclaim only what the owner agrees is dead. Use when someone asks why ~/.claude or an agent directory is so large, wants a breakdown of agent disk usage, asks how much space one project's sessions or history take, suspects transcripts or plugins are filling the disk, asks what is safe to delete from an agent directory, or wants old project state and sessions cleaned up.
 ---
 
 # Audit an agent's disk usage
@@ -44,15 +44,33 @@ Run `scripts/inspect.mjs` for the mechanical half. It is read-only, deletes
 nothing, and is dependency-free:
 
 ```
-node scripts/inspect.mjs                 # defaults to ~/.claude
-node scripts/inspect.mjs --dir <path>    # another agent directory
-node scripts/inspect.mjs --json          # machine-readable
+node scripts/inspect.mjs                        # whole directory (~/.claude)
+node scripts/inspect.mjs --project <repo-path>  # one project's state
+node scripts/inspect.mjs --dir <path>           # another agent directory
+node scripts/inspect.mjs --json                 # machine-readable, either view
 ```
 
-It reports the total, splits every area into **cleared** (the agent removes it
-past the retention window) and **kept** (nothing removes it), resolves which
-per-project state belongs to a project still on disk, flags which of those hold
-a `memory/` directory, and lists the largest individual transcripts.
+**Pick the view from what was asked.** "Why is my agent directory so big"
+wants the whole-directory view. "How much is this project costing" wants
+`--project`, and the repository path is what to pass — the one the owner would
+type, not the encoded state-directory name.
+
+The **whole-directory view** reports the total, splits every area into
+**cleared** (the agent removes it past the retention window) and **kept**
+(nothing removes it), resolves which per-project state belongs to a project
+still on disk, flags which of those hold a `memory/` directory, and lists the
+largest individual transcripts.
+
+The **project view** answers different questions, because the directory-wide
+ones do not apply to a single project: composition (transcripts, subagents,
+tool results, memory), how the size spreads across the retention window, that
+project's share of the whole directory, the largest sessions, and the contents
+of its `memory/`. It flags a session that dwarfs the project's others —
+measured against the median rather than a fixed share, so it means the same
+thing on a project with five sessions and one with eighty.
+
+If a project has no state, the script says whether the repository exists,
+which separates "no agent has worked here" from a mistyped path.
 
 Read `references/layout.md` for what each area is for and what depends on it,
 and `references/audit.md` for what the script deliberately leaves to judgement.
@@ -88,6 +106,14 @@ Report before asking. Lead with the split, not the total:
 
 If the directory is healthy, say that first and plainly. Do not pad a clean
 result into a list of marginal deletions.
+
+For a single project, report instead: its composition, its share of the whole
+directory, how its size spreads across the window, and whether one session is
+an outlier. The verdict usually turns on one thing — whether the project is
+still in use. State held for a project worked on today is a working set,
+however large; the same size for a project untouched for weeks is ageing out
+anyway. Say which, and note that a project's own size says nothing about
+whether the directory as a whole has a problem.
 
 Where a project directory is reported as missing, treat that as a lead rather
 than a fact. A project can be absent because it was deleted, but equally

@@ -5,11 +5,18 @@
 //
 // The mechanical half of the agent directory audit.
 //
-//   node inspect.mjs [--dir <agent-dir>] [--json]
+//   node inspect.mjs [--dir <agent-dir>] [--project <repo-path>] [--json]
 //
 // Measures what an agent directory holds, splits it into what the agent
 // already clears on its own and what it never will, and resolves which
 // per-project state belongs to a project that no longer exists.
+//
+// With --project it narrows to the state held for one repository, reporting
+// that project's composition, how its size is spread across the retention
+// window, and whether any single session is outsized. The whole-directory
+// questions — is cleanup running, which projects are orphaned — do not apply
+// to one project, so that view answers different questions rather than
+// filtering the same ones.
 //
 // It reports evidence, never conclusions, and it deletes nothing. Deciding
 // what is worth removing needs to know which sessions the owner still wants
@@ -30,6 +37,14 @@ const agentDir =
   dirFlag !== -1 && args[dirFlag + 1]
     ? resolve(args[dirFlag + 1])
     : join(homedir(), ".claude");
+
+const projFlag = args.indexOf("--project");
+const projectArg = projFlag !== -1 ? args[projFlag + 1] : null;
+
+if (projFlag !== -1 && !projectArg) {
+  console.error("usage: node inspect.mjs --project <repo-path>");
+  process.exit(2);
+}
 
 if (!existsSync(agentDir)) {
   console.error(`no such directory: ${agentDir}`);
@@ -138,6 +153,14 @@ function decodeProjectDir(name) {
   return rec("", parts);
 }
 
+// Encoding a real path forward to its state-directory name is lossless: every
+// "/" becomes "-" and nothing has to be guessed back. That is why --project
+// takes the repository path rather than the encoded name — the ambiguity that
+// makes decodeProjectDir necessary only exists in the other direction.
+function encodeProjectDir(absPath) {
+  return absPath.replace(/\//g, "-");
+}
+
 // ---------------------------------------------------------------------------
 // Retention settings
 // ---------------------------------------------------------------------------
@@ -192,6 +215,234 @@ const AREAS = [
   ["statsig", "kept", "Feature flag cache"],
   ["debug", "kept", "Diagnostic logs"],
 ];
+
+// ---------------------------------------------------------------------------
+// Single-project audit
+// ---------------------------------------------------------------------------
+
+if (projectArg) {
+  const repoPath = resolve(projectArg);
+  const encoded = encodeProjectDir(repoPath);
+  const stateDir = join(agentDir, "projects", encoded);
+
+  if (!existsSync(stateDir)) {
+    // Distinguish "no agent has ever worked here" from "that path is wrong",
+    // because the fix differs and the second is the common mistake.
+    const hint = existsSync(repoPath)
+      ? "That directory exists, but the agent holds no state for it — no sessions have run there, or they ran from a different path (a symlink, or another spelling of the same directory)."
+      : "That directory does not exist either; check the path.";
+    console.error(`no agent state for: ${repoPath}`);
+    console.error(`  looked for: ${stateDir}`);
+    console.error(`  ${hint}`);
+    process.exit(1);
+  }
+
+  const settings = readSettings();
+  const windowDays = settings.cleanupPeriodDays ?? CLEANUP_DEFAULT_DAYS;
+
+  const whole = measure(agentDir);
+  // Reset inode tracking: the project is measured as its own total here, not
+  // as a remainder of the directory-wide walk that just ran.
+  seenInodes.clear();
+  const proj = measure(stateDir);
+
+  // Composition. Each part is measured against a fresh inode set so the parts
+  // are comparable to each other rather than order-dependent.
+  const part = (p) => {
+    seenInodes.clear();
+    return existsSync(p) ? measure(p) : { bytes: 0, files: 0, newest: 0, oldest: 0 };
+  };
+
+  let topBytes = 0;
+  let topFiles = 0;
+  const sessions = [];
+  for (const e of readdirSync(stateDir, { withFileTypes: true })) {
+    if (!e.isFile() || !e.name.endsWith(".jsonl")) continue;
+    const s = statSync(join(stateDir, e.name));
+    topBytes += s.blocks * 512;
+    topFiles += 1;
+    sessions.push({ name: e.name, bytes: s.blocks * 512, ageDays: ageDays(s.mtimeMs) });
+  }
+  sessions.sort((a, b) => b.bytes - a.bytes);
+
+  const subBytes = { bytes: 0, files: 0 };
+  const toolBytes = { bytes: 0, files: 0 };
+  const sweep = (dir) => {
+    let entries;
+    try {
+      entries = readdirSync(dir, { withFileTypes: true });
+    } catch {
+      return;
+    }
+    for (const e of entries) {
+      const full = join(dir, e.name);
+      if (e.isDirectory()) {
+        if (e.name === "subagents" || e.name === "tool-results") {
+          seenInodes.clear();
+          const m = measure(full);
+          const t = e.name === "subagents" ? subBytes : toolBytes;
+          t.bytes += m.bytes;
+          t.files += m.files;
+        } else if (e.name !== "memory") {
+          sweep(full);
+        }
+      }
+    }
+  };
+  sweep(stateDir);
+
+  const memDir = join(stateDir, "memory");
+  const mem = part(memDir);
+  const memFiles = existsSync(memDir)
+    ? readdirSync(memDir, { withFileTypes: true })
+        .filter((e) => e.isFile())
+        .map((e) => {
+          const s = statSync(join(memDir, e.name));
+          return { name: e.name, bytes: s.size, ageDays: ageDays(s.mtimeMs) };
+        })
+        .sort((a, b) => a.name.localeCompare(b.name))
+    : [];
+
+  // Size against the retention window, in quarters of it, so the buckets stay
+  // meaningful whatever window is configured.
+  const q = Math.max(1, Math.ceil(windowDays / 4));
+  const buckets = [];
+  for (let i = 0; i < 4; i++) {
+    const lo = i * q;
+    const hi = i === 3 ? Infinity : (i + 1) * q - 1;
+    buckets.push({
+      label: i === 3 ? `${lo}d+` : `${lo}-${hi}d`,
+      bytes: 0,
+      files: 0,
+    });
+  }
+  for (const s of sessions) {
+    const i = Math.min(3, Math.floor((s.ageDays ?? 0) / q));
+    buckets[i].bytes += s.bytes;
+    buckets[i].files += 1;
+  }
+
+  // An outsized session is one that dwarfs the project's *other* sessions,
+  // not one crossing a fixed share of the total: a project with three
+  // sessions gives each a third of it, while a project with eighty makes 10%
+  // extraordinary. Comparing against the median catches the runaway task at
+  // either scale, and needs enough sessions for a median to mean anything.
+  const biggest = sessions[0] ?? null;
+  const outsizedShare = biggest && proj.bytes ? biggest.bytes / proj.bytes : 0;
+  const median = sessions.length
+    ? sessions[Math.floor(sessions.length / 2)].bytes
+    : 0;
+  const ratio = biggest && median ? biggest.bytes / median : 0;
+  const isOutsized =
+    biggest && sessions.length >= 5 && ratio >= 8 && outsizedShare >= 0.05;
+
+  const pReport = {
+    mode: "project",
+    agentDir,
+    repoPath,
+    repoExists: existsSync(repoPath),
+    stateDir,
+    total: { bytes: proj.bytes, files: proj.files },
+    shareOfAgentDir: whole.bytes ? proj.bytes / whole.bytes : 0,
+    agentDirBytes: whole.bytes,
+    lastUsedDays: ageDays(proj.newest),
+    oldestDays: ageDays(proj.oldest),
+    window: windowDays,
+    windowConfigured: settings.cleanupPeriodDays !== null,
+    composition: {
+      transcripts: { bytes: topBytes, files: topFiles },
+      subagents: subBytes,
+      toolResults: toolBytes,
+      memory: { bytes: mem.bytes, files: mem.files },
+    },
+    buckets,
+    largestSessions: sessions.slice(0, 5),
+    outsized: isOutsized
+      ? { ...biggest, share: outsizedShare, timesMedian: ratio }
+      : null,
+    memoryFiles: memFiles,
+  };
+
+  if (wantJson) {
+    console.log(JSON.stringify(pReport, null, 2));
+    process.exit(0);
+  }
+
+  const o = [];
+  o.push(`# Project state audit`);
+  o.push(``);
+  o.push(`Project:   ${repoPath}${pReport.repoExists ? "" : "   [NO LONGER ON DISK]"}`);
+  o.push(`State dir: ${stateDir}`);
+  o.push(
+    `Total:     ${fmt(proj.bytes)} across ${proj.files} files — ${(pReport.shareOfAgentDir * 100).toFixed(0)}% of the ${fmt(whole.bytes)} agent directory`
+  );
+  o.push(`Last used: ${pReport.lastUsedDays}d ago`);
+
+  o.push(`\n## Composition`);
+  const comp = [
+    ["transcripts", pReport.composition.transcripts, "cleared"],
+    ["subagents", pReport.composition.subagents, "cleared"],
+    ["tool-results", pReport.composition.toolResults, "cleared"],
+    ["memory", pReport.composition.memory, "ESSENTIAL"],
+  ];
+  for (const [name, m, klass] of comp) {
+    o.push(
+      `${fmt(m.bytes).padStart(8)}  ${String(m.files).padStart(4)} files  ${name.padEnd(13)} ${klass}`
+    );
+  }
+
+  o.push(`\n## Spread across the ${windowDays}-day window`);
+  if (pReport.windowConfigured) {
+    o.push(`(cleanupPeriodDays set to ${windowDays})`);
+  } else {
+    o.push(`(cleanupPeriodDays not set — the agent's default of ${windowDays} days applies)`);
+  }
+  for (const b of buckets) {
+    o.push(`${b.label.padEnd(8)} ${fmt(b.bytes).padStart(8)}  ${b.files} files`);
+  }
+  const ageing = buckets[3];
+  if (ageing.files > 0) {
+    o.push(``);
+    o.push(`${fmt(ageing.bytes)} in ${ageing.files} file(s) is at the far end of the window and clears soon.`);
+  }
+
+  if (pReport.largestSessions.length) {
+    o.push(`\n## Largest sessions`);
+    for (const s of pReport.largestSessions) {
+      o.push(`${fmt(s.bytes).padStart(8)}  ${String(s.ageDays).padStart(3)}d  ${s.name}`);
+    }
+  }
+
+  if (pReport.outsized) {
+    const x = pReport.outsized;
+    o.push(``);
+    o.push(
+      `! One session holds ${fmt(x.bytes)} — ${(x.share * 100).toFixed(0)}% of this project's state, and ${x.timesMedian.toFixed(0)}x the median session.`
+    );
+    o.push(
+      `  That usually means one runaway task rather than ordinary use. It clears`);
+    o.push(
+      `  with the window, so it is a cause worth knowing, not a cleanup target.`);
+  }
+
+  if (memFiles.length) {
+    o.push(`\n## memory/ — essential, never a cleanup candidate`);
+    for (const f of memFiles) {
+      o.push(`${String(f.bytes).padStart(8)}B  ${String(f.ageDays).padStart(3)}d  ${f.name}`);
+    }
+  }
+
+  o.push(`\n## Still yours to judge`);
+  if (!pReport.repoExists) {
+    o.push(`- The repository is not at this path. Deleted, or moved, renamed, on an`);
+    o.push(`  unmounted volume, or another machine? Only the first makes this dead.`);
+  }
+  o.push(`- Which of these sessions you may still want to resume.`);
+  o.push(`- Whether the memory/ notes above should be read out before anything else.`);
+
+  console.log(o.join("\n"));
+  process.exit(0);
+}
 
 const report = {
   agentDir,

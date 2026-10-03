@@ -47,6 +47,11 @@ claude project purge --dry-run <path>   # always first
 claude project purge <path>             # after the owner sees the dry run
 ```
 
+The path it takes is the repository path, the same one `inspect.mjs
+--project` takes — so a project audited by that command is purged with the
+same argument, and there is no encoded directory name to transcribe wrongly
+in between.
+
 `--all` covers every project, `-i` prompts per item, `-y` skips confirmation.
 Use `-y` only when the owner has approved that exact list; it removes the last
 checkpoint between a misidentification and permanent loss.

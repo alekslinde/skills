@@ -66,6 +66,26 @@ That is worth mentioning when it stands out sharply from the rest, as the
 cause may recur. It is diagnosis, not a cleanup target: the file ages out on
 its own.
 
+In the project view this is flagged against the median session rather than a
+fixed share of the total, because a share means different things at different
+scales: one session of three is naturally a third of the project, while one of
+eighty taking a tenth is not natural at all. The flag says a session is
+unusual *for this project*. Whether that matters is still a judgement — a
+single long migration session is a fine reason to be large, and no reason to
+act.
+
+## Whether one project's size is a problem
+
+A project view answers "what is this costing", not "is something wrong". A
+project can hold the largest share of the directory simply by being the one in
+daily use.
+
+Read it against use, not size: state for a project worked on today is a
+working set, and the same figure for a project untouched for weeks is already
+ageing out. Neither is a leak. Resist concluding anything about the directory
+as a whole from one project — that needs the whole-directory view, where the
+retention verdict and the kept areas live.
+
 ## What the script does not measure
 
 - **Anything outside the agent directory.** Caches elsewhere in the home
