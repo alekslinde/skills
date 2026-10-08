@@ -113,8 +113,24 @@ for (const dir of packages) {
     if (entry.includes("*")) continue; // globs need a real matcher; not worth one here
     record(exists(`${dir}/${entry}`), "R8", `${id}: files entry "${entry}" ${exists(`${dir}/${entry}`) ? "exists" : "DOES NOT EXIST"}`);
   }
-  for (const doc of ["README.md", "LICENSE"]) {
-    record((pkg.files ?? []).includes(doc), "R8", `${id}: ${doc} listed in files`);
+  // npm always packs README and LICENSE (any case or extension) whatever
+  // `files` says, so requiring them to be listed reports a safety it never
+  // checked. What matters is that they exist on disk: a package with no readme
+  // shows a blank page on the registry forever.
+  const names = readdirSync(dir, { withFileTypes: true })
+    .filter((e) => e.isFile())
+    .map((e) => e.name);
+  record(names.some((n) => /^README/i.test(n)), "R8", `${id}: README present on disk`);
+  record(names.some((n) => /^LICEN[SC]E/i.test(n)), "R8", `${id}: LICENSE present on disk`);
+
+  // NOTICE is NOT auto-packed, and Apache-2.0 section 4(d) requires it to
+  // travel with redistributions — so it only ships if `files` lists it.
+  if (String(pkg.license ?? "").startsWith("Apache-2.0") && exists(`${dir}/NOTICE`)) {
+    record(
+      (pkg.files ?? []).some((f) => f === "NOTICE" || f.includes("*")),
+      "R8",
+      `${id}: NOTICE listed in files (Apache-2.0 4(d); npm does not auto-pack it)`,
+    );
   }
 
   // R2 — the protocol npm ships verbatim.

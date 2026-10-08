@@ -157,8 +157,16 @@ package defaults to restricted, and restricted on a free org fails with 402.
 Update `repository.directory` when a package moves; it goes stale silently.
 
 Every path in `files` must exist: a listed file that does not is absent from the
-tarball with no warning, which is how a package reaches the registry with no
-readme.
+tarball with no warning.
+
+npm always packs `package.json`, `README*`, `LICENSE*`/`LICENCE*`, and the
+`main` and `bin` targets, **whatever `files` says** — so listing a readme is
+noise, and the check that matters is whether the file exists at all. A package
+with no readme shows a blank page on the registry forever.
+
+`NOTICE` is **not** in that list. Apache-2.0 section 4(d) requires it to travel
+with redistributions, so an Apache-2.0 package with a NOTICE file must list it
+in `files` explicitly or it silently ships without one. *Checked: 2026-10.*
 
 ### R19 — A rewritten manifest must be restored `[any]`
 **Symptom:** a published `exports` map pointing somewhere impossible.
