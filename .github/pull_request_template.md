@@ -23,6 +23,8 @@ Contributions are accepted under Apache-2.0; see CONTRIBUTING.md.
 - [ ] `claude plugin validate .` passes
 - [ ] `claude plugin validate plugins/<name>` passes for each plugin touched
 - [ ] `node scripts/check-shared-blocks.mjs` passes
+- [ ] `node scripts/check-repo.mjs` passes
+- [ ] `node --test tests/scripts.test.mjs` passes
 - [ ] `pipx run reuse lint` passes
 - [ ] Ran the skill end to end against a real project
 
@@ -36,6 +38,7 @@ Contributions are accepted under Apache-2.0; see CONTRIBUTING.md.
 
 - [ ] One change per pull request
 - [ ] `README.md` table updated if a plugin was added, renamed or repurposed
+- [ ] `CHANGELOG.md` has a line under `[Unreleased]` naming the plugin
 - [ ] New `SKILL.md` frontmatter `description` names the triggers that should
       load it
 - [ ] Long material lives in `references/`, keeping `SKILL.md` short

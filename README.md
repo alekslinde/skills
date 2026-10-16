@@ -15,11 +15,13 @@ claude plugin install versioning@alekslinde
 claude plugin install agent-team@alekslinde
 claude plugin install npm-release@alekslinde
 claude plugin install disk-usage@alekslinde
+claude plugin install project-memory@alekslinde
 ```
 
 Or inside a session: `/plugin marketplace add alekslinde/skills`, then
 `/plugin install licensing@alekslinde` (or `versioning@alekslinde`,
-`agent-team@alekslinde`, `npm-release@alekslinde`, `disk-usage@alekslinde`).
+`agent-team@alekslinde`, `npm-release@alekslinde`, `disk-usage@alekslinde`,
+`project-memory@alekslinde`).
 
 **Any agent**, with [`npx skills`](https://github.com/vercel-labs/skills)
 (Claude Code, Codex, Cursor, OpenCode and others). It copies the skill folders
@@ -33,6 +35,9 @@ npx skills add alekslinde/skills --skill choose-license -a codex
 
 `npx skills update` fetches newer versions. Agents without an ask-the-user tool
 get the skill's questions as plain text.
+
+The plugins are Markdown skills plus a few dependency-free Node scripts. Those
+scripts need Node 20.11 or later; nothing is installed by a plugin.
 
 ## Plugins
 

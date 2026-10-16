@@ -14,17 +14,43 @@ permissions:
 jobs:
   checks:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
+      # Actions are pinned to a commit SHA, so a moved tag cannot change what
+      # runs. Dependabot proposes the updates (.github/dependabot.yml).
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          # Full history, so the version-bump check can diff against the base.
+          fetch-depth: 0
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: "22"
+
+      # Pinned, because the plugin validator's behaviour is the thing being
+      # checked. Bump it deliberately, with the rest of the plugin changes.
+      - name: Install Claude Code
+        run: npm install -g @anthropic-ai/claude-code@2.1.282
+
+      - name: Validate the marketplace and every plugin
+        run: |
+          claude plugin validate .
+          for dir in plugins/*/; do
+            claude plugin validate "$dir"
+          done
 
       # Skills cannot import each other, so shared guidance is a copy per
       # skill. This is what keeps the copies from drifting apart silently.
       - name: Shared blocks identical across skills
         run: node scripts/check-shared-blocks.mjs
+
+      - name: Repository consistency and version bumps
+        if: github.event_name == 'pull_request'
+        run: node scripts/check-repo.mjs --base "${{ github.event.pull_request.base.sha }}"
+
+      - name: Repository consistency
+        if: github.event_name != 'pull_request'
+        run: node scripts/check-repo.mjs
 
       # The audit scripts ship to users and run with no install step, so a
       # syntax error reaches them directly.
@@ -33,8 +59,11 @@ jobs:
           rc=0
           while IFS= read -r f; do
             node --check "$f" || rc=1
-          done < <(find plugins scripts -name '*.mjs' -type f)
+          done < <(find plugins scripts tests -name '*.mjs' -type f)
           exit $rc
+
+      - name: Script behaviour
+        run: node --test tests/scripts.test.mjs
 
       - name: Licensing metadata
         run: pipx run reuse lint

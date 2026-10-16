@@ -1,6 +1,7 @@
 {
   "name": "project-memory",
-  "version": "0.1.0",
+  "version": "0.1.1",
+  "license": "Apache-2.0",
   "description": "Audit what a repository already proves about itself, then write the project memory file an agent reads on every task",
   "author": {
     "name": "Aleksandr Linde"

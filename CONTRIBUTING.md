@@ -102,7 +102,11 @@ to match.
 Bump the `version` in that plugin's `plugin.json`. Installed copies are pinned
 and stay on the old version until the number changes, so a fix with no bump
 reaches nobody. Patch for wording and fixes, minor for new behaviour or
-questions, major when existing usage breaks.
+questions, major when existing usage breaks. CI fails a pull request that
+changes a plugin without bumping its version.
+
+Add a line for the change under `[Unreleased]` in [CHANGELOG.md](CHANGELOG.md),
+named by plugin, so the next release has its notes.
 
 ## Checks
 
@@ -111,8 +115,14 @@ Before opening a pull request:
 ```bash
 claude plugin validate .                 # marketplace manifest
 claude plugin validate plugins/<name>    # each plugin you touched
+node scripts/check-repo.mjs              # manifests, README and frontmatter agree
+node scripts/check-shared-blocks.mjs     # shared wording is identical
+node --test tests/scripts.test.mjs       # every script behaves on fixtures
 pipx run reuse lint                      # licensing metadata
 ```
+
+CI runs all of these, plus a version-bump check against the pull request's base
+branch, so a failing check there is one you can reproduce locally.
 
 `reuse lint` reads SPDX ids wherever it finds them, including inside fenced code
 blocks in documentation. Wrap example headers in `REUSE-IgnoreStart` and
