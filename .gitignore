@@ -1,0 +1,16 @@
+# SPDX-FileCopyrightText: 2026 Aleksandr Linde
+# SPDX-License-Identifier: Apache-2.0
+
+# OS and editor droppings
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Local Claude Code settings are per-machine and may hold paths or tokens
+.claude/settings.local.json
+
+# Dependencies and output, should a contributor add tooling
+node_modules/
+coverage/
+*.log
