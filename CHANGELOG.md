@@ -8,6 +8,9 @@ every bump gets an entry.
 ## [Unreleased]
 
 ### Added
+- `gh-actions-usage`: audits a repository's GitHub Actions artifact storage
+  by workflow, flags what is already expired, and reclaims only an approved
+  run-id list, dry run first.
 - Repository checks (`scripts/check-repo.mjs`): marketplace and plugin
   manifests agree, skill frontmatter matches its folder, the README lists every
   plugin, and changed plugins bump their version.

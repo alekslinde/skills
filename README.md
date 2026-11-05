@@ -16,12 +16,13 @@ claude plugin install agent-team@alekslinde
 claude plugin install npm-release@alekslinde
 claude plugin install disk-usage@alekslinde
 claude plugin install project-memory@alekslinde
+claude plugin install gh-actions-usage@alekslinde
 ```
 
 Or inside a session: `/plugin marketplace add alekslinde/skills`, then
 `/plugin install licensing@alekslinde` (or `versioning@alekslinde`,
 `agent-team@alekslinde`, `npm-release@alekslinde`, `disk-usage@alekslinde`,
-`project-memory@alekslinde`).
+`project-memory@alekslinde`, `gh-actions-usage@alekslinde`).
 
 **Any agent**, with [`npx skills`](https://github.com/vercel-labs/skills)
 (Claude Code, Codex, Cursor, OpenCode and others). It copies the skill folders
@@ -49,6 +50,7 @@ scripts need Node 20.11 or later; nothing is installed by a plugin.
 | [`npm-release`](plugins/npm-release) | `/npm-release:prepare-npm-release` | Audits a package against the mistakes that cost a permanent version number — a workspace specifier in a tarball, an untested `engines` claim, a release job that can publish alone, a green build that shipped a broken package — runs the mechanical checks as a script, asks only what the code can't answer, then fixes what it found and walks the release. npm and pnpm, with every rule tagged by the toolchain it applies to |
 | [`project-memory`](plugins/project-memory) | `/project-memory:write-project-memory` | Writes the `CLAUDE.md` or `AGENTS.md` an agent reads on every task. Audits what the repository already proves — the committed lockfile, the scripts that exist, where new code actually lands, the scope vocabulary in the history — asks only what the code can't answer, then recommends a file that holds just what an agent would otherwise get wrong, says what it left out and why, and checks it for anything that shouldn't be committed |
 | [`disk-usage`](plugins/disk-usage) | `/disk-usage:audit-agent-disk` | Explains what an agent's own directory is costing on disk and why, across every project or for one. Measures it with a script that separates the rolling working set the agent already clears from the state nothing ever removes, checks whether automatic cleanup is actually running, and resolves which per-project state belongs to a project that no longer exists — a lossy path encoding that makes live projects look deleted, so it is resolved against the filesystem rather than guessed. Point it at a single repository for that project's composition, how its size spreads across the retention window and whether one session is an outlier. Often ends in a changed retention setting and no deletion at all |
+| [`gh-actions-usage`](plugins/gh-actions-usage) | `/gh-actions-usage:prune-actions-storage` | Explains what a repository's GitHub Actions artifacts and logs are costing against the account's pooled storage quota, across every workflow or for one. Measures it with a script that breaks the total down by workflow, flags what is already expired, and lists the heaviest individual artifacts, so a handful of oversized ones aren't missed. Asks only what the measurement left open — retention window, how many runs per workflow to keep, artifacts only or the run records too — then reclaims exactly the approved run-id list, dry run first |
 
 Claude also loads a skill on its own when a request matches it, for example
 "which licence should this project use?".
