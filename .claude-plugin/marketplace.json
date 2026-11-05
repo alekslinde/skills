@@ -34,6 +34,11 @@
       "name": "disk-usage",
       "source": "./plugins/disk-usage",
       "description": "Explain what an agent's own directory holds and what it costs on disk, then reclaim only what is dead"
+    },
+    {
+      "name": "gh-actions-usage",
+      "source": "./plugins/gh-actions-usage",
+      "description": "Explain what a repository's GitHub Actions artifacts are costing against the account's storage quota, then reclaim only what is approved"
     }
   ]
 }
