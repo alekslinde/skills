@@ -1,6 +1,6 @@
 ---
 name: prune-actions-storage
-description: Explain what a repository's GitHub Actions artifacts and logs are costing against the account's storage quota, across every workflow or for one, separating runs still worth keeping from artifacts nothing points back to, then reclaim only what the owner agrees to delete. Use when someone asks why Actions storage is full, has run out of GitHub Actions storage, wants to free up Actions quota, asks what is safe to delete from workflow runs or artifacts, wants to keep only the last N runs per workflow, or asks for a free alternative to GitHub Actions because of storage limits.
+description: Explain what a repository's GitHub Actions artifacts and logs are costing against the account's storage quota, across every workflow or for one, separating runs still worth keeping from artifacts nothing points back to, then reclaim only what the owner agrees to delete. Also handles tidying the Actions run list itself (deleting old run records) when that is what's being asked for, as a separate concern from freeing storage. Use when someone asks why Actions storage is full, has run out of GitHub Actions storage, wants to free up Actions quota, asks what is safe to delete from workflow runs or artifacts, wants to keep only the last N runs per workflow, wants to clean up or tidy the Actions tab / workflow run history, or asks for a free alternative to GitHub Actions because of storage limits.
 ---
 
 # Prune GitHub Actions storage
@@ -23,7 +23,8 @@ choice:
   proposing deletion.
 - **Artifacts are billed; run records mostly are not.** Deleting a run
   without artifacts tidies the Actions tab and frees nothing. Say which one
-  the owner is actually asking for.
+  the owner is actually asking for. Tidying the run list is a legitimate ask
+  on its own — handle it as that, not as a lesser version of freeing quota.
 - **Deleted is deleted.** GitHub keeps no trash for artifacts or runs. Weigh
   a mistaken deletion as far worse than quota left in use.
 - **Fix the cause, not the symptom.** A shortened retention setting keeps
@@ -47,8 +48,12 @@ node scripts/inspect.mjs <owner/repo> --json          # machine-readable
 
 It reports the total artifact storage, how much of it is already past
 GitHub's own expiry, a breakdown by workflow with how much sits in runs older
-than the kept set, and the largest individual artifacts across the
-repository.
+than the kept set, the largest individual artifacts across the repository,
+and — separately — how many run records per workflow sit past the kept
+threshold regardless of whether they hold any artifacts, since a repository
+can have thousands of empty runs and 0 B of billed storage at the same time
+(each workflow's full list of those run ids is in `--json` as
+`staleRunIds`).
 
 Read `references/layout.md` for what is actually billed, why "keep the last
 5" means 5 per workflow rather than 5 total, and why the account's quota is
@@ -78,7 +83,9 @@ actually constrained, not with a list of candidates to delete:
    not assume a full fix.
 
 If the total is small or mostly already expired, say that plainly rather than
-manufacturing a cleanup.
+manufacturing a cleanup — but if the run count past the kept threshold is
+large, say that too, as its own fact: it's a real tidy-up opportunity even
+when storage is at 0 B, and the owner may want it regardless of quota.
 
 ## Phase 3: Ask
 
@@ -108,7 +115,11 @@ plain text, numbered.
 
 Once scope is agreed, state the exact run-id list `inspect.mjs` identified as
 older than the kept threshold, and get it approved as a list, not as a rule —
-see `references/reclaim.md` for why the list is fixed at approval time.
+see `references/reclaim.md` for why the list is fixed at approval time. When
+the ask is purely to tidy the run list (no artifacts involved), the approved
+list is `staleRunIds` and the reclaim call always carries `--delete-runs` —
+without it nothing in the Actions tab changes, since those runs already hold
+no artifacts to delete.
 
 ## Phase 4: Reclaim (only after approval)
 

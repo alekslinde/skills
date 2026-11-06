@@ -26,6 +26,13 @@ artifacts gone — which is the lower-risk choice, since the run's logs and
 history survive. Only add it if the owner specifically wants the Actions tab
 tidied, not just the quota freed.
 
+**Tidying the run list with no artifacts in play** is the same script, just
+with an empty artifact loop: `reclaim.mjs` lists zero artifacts for each id,
+then deletes the run record if `--delete-runs` was passed. This is the entire
+path for a repository like one with thousands of runs and 0 B of artifact
+storage — there is nothing to free, so `--delete-runs` is not optional here,
+it's the only thing the command does.
+
 **The run-id list comes from the owner's approval, never from re-deriving
 "older than the kept N" inside the reclaim step.** `inspect.mjs` reports which
 runs that threshold would catch; copy that list into the approval, and pass
