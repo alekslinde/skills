@@ -87,6 +87,7 @@ for (const [workflowId, workflowRuns] of runsByWorkflow) {
   let workflowBytes = 0;
   let prunableBytes = 0;
   let prunableRuns = 0;
+  let staleRunIds = [];
 
   workflowRuns.forEach((run, i) => {
     const runArtifacts = artifactsByRun.get(run.id) ?? [];
@@ -99,6 +100,7 @@ for (const [workflowId, workflowRuns] of runsByWorkflow) {
       prunableBytes += runBytes;
       prunableRuns += 1;
     }
+    if (i >= keep) staleRunIds.push(run.id);
   });
 
   workflowReport.push({
@@ -108,6 +110,8 @@ for (const [workflowId, workflowRuns] of runsByWorkflow) {
     bytes: workflowBytes,
     prunableRuns,
     prunableBytes,
+    staleRunCount: staleRunIds.length,
+    staleRunIds,
     oldestRun: workflowRuns.at(-1)?.created_at ?? null,
     newestRun: workflowRuns[0]?.created_at ?? null,
   });
@@ -126,12 +130,15 @@ const largestArtifacts = [...artifacts]
     workflowRunId: a.workflow_run?.id ?? null,
   }));
 
+const totalStaleRuns = workflowReport.reduce((sum, w) => sum + w.staleRunCount, 0);
+
 const result = {
   repo,
   keep,
   totalRuns: runs.length,
   totalArtifactBytes: totalBytes,
   expiredArtifactBytes: expiredBytes,
+  totalStaleRuns,
   workflows: workflowReport,
   largestArtifacts,
 };
@@ -163,6 +170,14 @@ for (const w of workflowReport) {
   console.log(
     `  ${w.name}: ${human(w.bytes)} total, ${w.runCount} runs` +
       (w.prunableRuns > 0 ? ` — ${human(w.prunableBytes)} in ${w.prunableRuns} run(s) older than the kept ${keep}` : ""),
+  );
+}
+if (totalStaleRuns > 0) {
+  console.log("");
+  console.log(
+    `Run records older than the kept ${keep} per workflow: ${totalStaleRuns} — tidies the Actions tab ` +
+      `if removed, but frees no storage on its own (most hold no artifacts already). ` +
+      `See each workflow's staleRunIds in --json, or ask to delete run records with reclaim.mjs --delete-runs.`,
   );
 }
 if (largestArtifacts.length > 0) {
