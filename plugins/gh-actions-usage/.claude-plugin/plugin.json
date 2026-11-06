@@ -1,6 +1,6 @@
 {
   "name": "gh-actions-usage",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "license": "Apache-2.0",
   "description": "Explain what a repository's GitHub Actions artifacts and logs are costing against the account's storage quota, separating workflows still worth keeping from runs nothing points back to, then reclaim only what is approved",
   "author": {
