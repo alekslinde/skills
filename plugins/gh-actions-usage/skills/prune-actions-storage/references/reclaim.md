@@ -5,9 +5,12 @@ assumes that approval already exists and names exactly what it covers.
 
 ## Order of preference
 
-1. **Shorten the retention setting.** The durable fix — see
+1. **Shorten the retention setting, if agreed.** The durable fix — see
    `references/layout.md`. Often the only change actually needed; it costs
-   nothing to apply alongside a one-off prune.
+   nothing to apply alongside a one-off prune. **This is a manual step for
+   the owner** (`Settings → Actions → General → Artifact and log
+   retention`) — there is no API call in this skill that sets it, so don't
+   attempt one; point the owner at the setting and move on.
 2. **Run `scripts/reclaim.mjs` without `--apply` first**, always, and show the
    owner the real output before anything is removed.
 3. **Re-run with `--apply`** only once the dry run's list matches what was
@@ -45,6 +48,14 @@ by the same rule — go back and ask rather than widening the scope.
 run is where a wrong run id gets caught, and that is the failure this whole
 phase exists to prevent — once an artifact is deleted there is no undo, and
 GitHub does not keep a trash.
+
+**A dry run against a few thousand ids takes real time and runs in the
+background.** `reclaim.mjs` makes one API call per id (more with its own
+rate-limit backoff — see `references/layout.md`), so expect minutes, not
+seconds, for a large list. Let the process exit before treating its output as
+final: a `tail` or partial read of a log that is still being written is not a
+complete result and is not something to act, or raise a concern, on — wait
+for the exit, then read the whole file.
 
 If the dry run lists an artifact the owner did not expect — far larger than
 estimated, or from a run that looked already expired — stop and go back to

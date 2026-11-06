@@ -51,9 +51,16 @@ GitHub's own expiry, a breakdown by workflow with how much sits in runs older
 than the kept set, the largest individual artifacts across the repository,
 and — separately — how many run records per workflow sit past the kept
 threshold regardless of whether they hold any artifacts, since a repository
-can have thousands of empty runs and 0 B of billed storage at the same time
-(each workflow's full list of those run ids is in `--json` as
-`staleRunIds`).
+can have thousands of empty runs and 0 B of billed storage at the same time.
+
+`--json` emits the same data as a structured object: top-level `totalRuns`,
+`totalArtifactBytes`, `expiredArtifactBytes`, `totalStaleRuns`, plus
+`workflows[]` (each with `name`, `runCount`, `bytes`, `prunableRuns`,
+`prunableBytes`, `staleRunCount`, `staleRunIds` — the exact ids past the kept
+threshold for that workflow, artifacts or not) and `largestArtifacts[]`.
+`staleRunIds` across all workflows, flattened, is the list to carry into
+Phase 3's approval when the ask is to tidy run records rather than free
+storage.
 
 Read `references/layout.md` for what is actually billed, why "keep the last
 5" means 5 per workflow rather than 5 total, and why the account's quota is
@@ -129,11 +136,15 @@ runs qualify, that is `inspect.mjs`'s job, read by a person first.
 
 The order that matters:
 
-1. **Apply the retention setting change** first if one was agreed
-   (`Settings → Actions → General → Artifact and log retention`), so next
-   quarter needs no manual prune.
+1. **Point the owner at the retention setting** first if shortening it was
+   agreed (`Settings → Actions → General → Artifact and log retention`), so
+   next quarter needs no manual prune. This is manual for the owner — there
+   is no API call in this skill that sets it, so don't attempt one on their
+   behalf.
 2. **Dry run `reclaim.mjs` first**, always, and show the owner the real
-   output before anything is removed.
+   output before anything is removed. For more than a few hundred ids this
+   runs for minutes, not seconds — let it finish before reading its output
+   as final (see `references/layout.md` on rate limits).
 3. **Delete only what was named in the approved list.** If the dry run shows
    something unexpected, stop and go back to the owner rather than widening
    the scope.

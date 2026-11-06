@@ -34,6 +34,16 @@ role `cleanupPeriodDays` plays for an agent's own transcripts — shortening it
 stops the next quarter's backlog without anyone deleting anything by hand.
 It has no effect on artifacts already uploaded under the old setting.
 
+**This setting is UI-only — there is no documented, stable REST endpoint in
+this skill's scope for reading or writing it.** Don't guess at an API call to
+set it (an organisation-level policy endpoint exists for internal/private org
+repos, but it is a different control, does not apply to a personal account's
+public repository, and guessing at the wrong endpoint risks changing some
+other repository setting instead). Tell the owner the exact path —
+`Settings → Actions → General → Artifact and log retention` on
+`github.com/<owner>/<repo>` — and let them set it, rather than attempting it
+through `gh api` on their behalf.
+
 A workflow can also set retention per artifact, in the `upload-artifact` step
 (`retention-days:`), which is where a logs-heavy job can be trimmed to a few
 days while a release-artifact job keeps the account default.
@@ -45,3 +55,25 @@ only a handful per repository. A **run** is one execution of it, and a busy
 workflow can have thousands. "Keep the last 5" means 5 per workflow, not 5
 across the repository — a repository with three workflows and `--keep 5` has
 up to 15 runs left untouched, not 5.
+
+## API rate limits on a large reclaim
+
+`inspect.mjs` paginates its reads inside a couple of `gh api --paginate`
+calls, so measuring stays cheap regardless of run count. `reclaim.mjs` does
+not: it calls the API once per run id to list that run's artifacts, and again
+per artifact or run to delete — so a list of a few thousand ids means a few
+thousand sequential requests, dry run included.
+
+That volume runs into GitHub's **secondary (burst) rate limit** well before
+the primary 5,000-requests-per-hour budget is anywhere near used up — the
+primary limit being far from exhausted is not evidence the secondary one
+won't trip. `reclaim.mjs` paces itself (a fixed delay between calls, backoff
+and retry on a 403/429) specifically so a large dry run finishes clean
+instead of erroring out partway through, which otherwise produces a result
+too incomplete to trust before a real delete.
+
+Because of that pacing, **a dry or real run against thousands of ids takes
+real wall-clock time** — plan on minutes, not seconds, and expect it to run
+in the background. Reading a truncated or partial log while it is still
+running is not a sign anything is wrong; wait for the process to exit before
+treating its output as final.
