@@ -15,6 +15,39 @@
 
 import { execFileSync } from "node:child_process";
 
+// GitHub enforces a secondary (burst) rate limit well below the primary
+// 5,000/hour budget when a client fires many requests back to back. A
+// small fixed delay between calls, plus a backoff-and-retry on 403/429,
+// keeps a few-thousand-id run inside that budget instead of erroring out
+// partway through — which otherwise produces a dry run too incomplete to
+// trust before a real delete.
+const REQUEST_DELAY_MS = 300;
+const MAX_RETRIES = 5;
+
+function sleep(ms) {
+  execFileSync("sleep", [String(ms / 1000)]);
+}
+
+function isRateLimitError(error) {
+  const msg = String(error.message ?? "");
+  return msg.includes("API rate limit exceeded") || msg.includes("HTTP 403") || msg.includes("HTTP 429");
+}
+
+function withRetry(fn) {
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt += 1) {
+    try {
+      return fn();
+    } catch (error) {
+      if (attempt === MAX_RETRIES || !isRateLimitError(error)) throw error;
+      const backoffMs = 2000 * 2 ** attempt;
+      console.error(`  rate limited — waiting ${backoffMs / 1000}s before retry ${attempt + 1}/${MAX_RETRIES}`);
+      sleep(backoffMs);
+    } finally {
+      sleep(REQUEST_DELAY_MS);
+    }
+  }
+}
+
 const args = process.argv.slice(2);
 const repo = args[0];
 const idsFlag = args.indexOf("--run-ids");
@@ -43,12 +76,16 @@ console.log(`also deleting the run records: ${deleteRuns ? "yes" : "no, artifact
 console.log("");
 
 function ghJson(path) {
-  const out = execFileSync("gh", ["api", path], { encoding: "utf8" });
-  return JSON.parse(out);
+  return withRetry(() => {
+    const out = execFileSync("gh", ["api", path], { encoding: "utf8" });
+    return JSON.parse(out);
+  });
 }
 
 function ghDelete(path) {
-  execFileSync("gh", ["api", "-X", "DELETE", path], { encoding: "utf8" });
+  withRetry(() => {
+    execFileSync("gh", ["api", "-X", "DELETE", path], { encoding: "utf8" });
+  });
 }
 
 let deletedArtifactBytes = 0;
